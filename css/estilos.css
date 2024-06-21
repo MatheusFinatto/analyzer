@@ -1,0 +1,56 @@
+.footer {
+  width: 100%;
+  background-color: black;
+  color: white;
+  height: 5vh;
+}
+
+.tr-tabela td,
+th {
+  padding: 5px 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+body {
+  background-color: #f8f8ff;
+}
+
+.wrapper-geral {
+  min-height: 90vh;
+}
+
+.modal {
+  min-width: 1000px;
+  min-height: 300px;
+}
+
+.nav-wrapper {
+  padding: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.nav-wrapper a {
+  margin-left: 16px;
+}
+.nav-wrapper button {
+  margin-left: 16px;
+}
+
+.nav-wrapper input {
+  color: black;
+  margin-left: 16px;
+}
+
+.hide {
+  display: none;
+}
+
+.close-modal {
+  margin-top: 15px !important;
+  margin-right: 15px;
+}
