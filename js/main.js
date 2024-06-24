@@ -1,75 +1,19 @@
-$(".botao-passos").css("display", "none");
-$(".botao-gerar").click(function () {
-  setTimeout(function () {
-    toggleButtons();
-  }, 200);
-});
-$(".token").on("input", function () {
-  toggleButtons();
-});
+//const action = (element) => `<td class='td-acao'>${element}</td>`;
 
-function toggleButtons() {
-  if ($(".token").val() != "") {
-    $(".botao-passos").css("display", "");
-    $(".botao-testar").css("display", "");
-  } else {
-    $(".botao-passos").css("display", "none");
-    $(".botao-testar").css("display", "none");
-  }
+// Mapeamento de caminhos na gramática
+function pathMapping(path) {
+  const mapping = {
+    s: ["aBc", "bABC"],
+    a: ["CA", "bA"],
+    b: ["dC", "&"],
+    c: ["aB", "cCb"],
+  };
+
+  return mapping[path];
 }
 
-var click = 0;
-var $tabela = $(".tbody-sintatico");
-
-$(".botao-passos").click(function () {
-  click += 1;
-  if (click <= 1) {
-    $tabela.append(syntatic());
-    $(".tr-sintatico").append(stack("$S"));
-    $(".tr-sintatico").append(entry($(".token").val() + "$"));
-    var cedula = $(".tabela-automato")
-      .find(".linha-S")
-      .find(".coluna-" + $(".token").val().split("")[0])
-      .text();
-    $(".tr-sintatico").append(action(cedula));
-  } else if ($(".td-acao").last().text().split(" ")[0] === "Lê") {
-    popFromStack();
-  } else {
-    empilha();
-  }
-  $(".botao-testar").css("display", "none");
-  $(".botao-gerar").css("display", "none");
-  $("html").prop("scrollTop", $("html").prop("scrollHeight"));
-});
-
-$(".botao-testar").click(function () {
-  $tabela.append(syntatic());
-  $(".tr-sintatico").append(stack("$S"));
-  $(".tr-sintatico").append(entry($(".token").val() + "$"));
-  var cedula = $(".tabela-automato")
-    .find(".linha-S")
-    .find(".coluna-" + $(".token").val().split("")[0])
-    .text();
-  $(".tr-sintatico").append(action(cedula));
-  $(".botao-reiniciar").css("display", "");
-  $(".botao-passos").css("display", "none");
-  $(".botao-testar").css("display", "none");
-  $(".botao-gerar").css("display", "none");
-
-  while (
-    $(".td-acao").last().text().split(" ")[0] != "Erro" ||
-    $(".td-acao").last().text().split(" ")[0] != "OK"
-  ) {
-    if ($(".td-acao").last().text().split(" ")[0] === "Lê") {
-      popFromStack();
-    } else {
-      empilha();
-    }
-    $("html").prop("scrollTop", $("html").prop("scrollHeight"));
-  }
-});
-
 function empilha() {
+  // Obtém a última sequência da ação
   var ultima_seq = $(".td-acao")
     .last()
     .text()
@@ -77,10 +21,12 @@ function empilha() {
     .split("")
     .reverse()
     .join("");
+
   var texto_pilha = $(".td-pilha").last().text();
 
+  // Verifica se a última sequência é "&" (vazio)
   if ($(".td-acao").last().text().split("> ")[1] === "&") {
-    $tabela.append(syntatic());
+    $tabela.append(tableRow());
     $(".tr-sintatico")
       .last()
       .append(stack(texto_pilha.substr(0, texto_pilha.length - 1)));
@@ -88,7 +34,7 @@ function empilha() {
       .last()
       .append(entry($(".td-entrada").last().text()));
   } else {
-    $tabela.append(syntatic());
+    $tabela.append(tableRow());
     $(".tr-sintatico")
       .last()
       .append(
@@ -99,23 +45,31 @@ function empilha() {
       .append(entry($(".td-entrada").last().text()));
   }
 
+  // Obtém o texto atual da entrada
   var texto_entrada = $(".td-entrada").last().text();
+  // Compara o último caractere da pilha com o primeiro da entrada
   compare(
     $(".td-pilha").last().text().split("").pop(),
     texto_entrada.split("")[0]
   );
 }
 
+// Função para comparar a pilha com a entrada atual
 function compare(linha, coluna) {
+  // Ajusta valores especiais
   if (coluna == "$") {
     coluna = "s";
   }
   if (linha == "$") {
     linha = "k";
   }
+
+  // Verifica ação baseada na comparação da célula da tabela de autômato
   if (linha === "k" && coluna === "s") {
+    // Caso seja "OK", exibe mensagem de sucesso
     $(".botao-reiniciar").css("display", "");
     $(".botao-passos").css("display", "none");
+    // Adiciona o token correto na caixa de texto
     $(".tokens-corretos").val(
       $(".tokens-corretos").val() + " " + $(".token").val()
     );
@@ -127,6 +81,7 @@ function compare(linha, coluna) {
         )
       );
   } else if (coluna === linha) {
+    // Caso haja correspondência, realiza ação de "Lê"
     var ultima_letra_pilha = $(".td-pilha").last().text().split("").pop();
     var primeira_letra_entrada = $(".td-entrada").last().text().split("")[0];
 
@@ -134,6 +89,7 @@ function compare(linha, coluna) {
       .last()
       .append(action("Lê " + ultima_letra_pilha));
   } else {
+    // Caso contrário, busca ação na tabela de autômato ou exibe erro
     var cedula = $(".tabela-automato")
       .find(".linha-" + linha)
       .find(".coluna-" + coluna)
@@ -143,6 +99,7 @@ function compare(linha, coluna) {
     } else {
       $(".botao-reiniciar").css("display", "");
       $(".botao-passos").css("display", "none");
+      // Adiciona o token incorreto na caixa de texto
       $(".tokens-incorretos").val(
         $(".tokens-incorretos").val() + " " + $(".token").val()
       );
@@ -157,108 +114,26 @@ function compare(linha, coluna) {
   }
 }
 
+// Função para realizar a ação de desempilhar na simulação sintática
 function popFromStack() {
+  // Obtém o texto atual da pilha
   var texto_pilha = $(".td-pilha").last().text();
-  $tabela.append(syntatic());
+  // Adiciona uma linha na tabela de passos sintáticos
+  $tabela.append(tableRow());
+  // Adiciona a pilha atualizada na linha sintática
   $(".tr-sintatico")
     .last()
     .append(stack(texto_pilha.substr(0, texto_pilha.length - 1)));
+  // Atualiza a entrada na linha sintática (removendo o primeiro caractere)
   $(".tr-sintatico")
     .last()
     .append(entry($(".td-entrada").last().text().substr(1)));
 
+  // Obtém o texto atual da entrada
   var texto_entrada = $(".td-entrada").last().text();
+  // Compara o último caractere da pilha com o primeiro da entrada
   compare(
     $(".td-pilha").last().text().split("").pop(),
     texto_entrada.split("")[0]
   );
-}
-
-const stack = element => `<td class='td-pilha'>${element}</td>`;
-const entry = element => `<td class='td-entrada'>${element}</td>`;
-const action = (element) =>`<td class='td-acao'>${element}</td>`;
-const syntatic = () => `<tr class='tr-sintatico'></tr>`;
-
-const alreadyGeneratedTokens = {};
-
-const generateRandomAcceptableString = () => {
-  const maxSize = 20;
-  let token = generateTokens("");
-  token = token.split("");
-  while (true) {
-    token = generateTokens(token.join("")).split("");
-    let isWrong = false;
-    token.forEach(function (e) {
-      if (e === e.toUpperCase()) {
-        isWrong = true;
-      }
-    });
-    if (isWrong) {
-      if (token.length > maxSize) {
-        return generateRandomAcceptableString();
-      }
-
-      generateTokens(token.join(""));
-    } else {
-      token = token.join("");
-
-      if (!alreadyGeneratedTokens[token]) {
-        $(".token").val(token);
-        alreadyGeneratedTokens[token] = true;
-        return token;
-        break;
-      }
-
-      return generateRandomAcceptableString();
-    }
-  }
-}
-
-$(".botao-gerar").click(function () {
-  generateRandomAcceptableString()
-});
-
-function pathMapping(path) {
-  const mapping = {
-    s: ["aBc", "bABC"],
-    a: ["CA", 'bA'],
-    b: ['dC', '&'],
-    c:  ["aB", "cCb"]
-  };
-
-  return mapping[path];
-}
-
-function generateTokens(token) {
-  if (token === "") {
-    token = pathMapping("s")[Math.floor(Math.random() * pathMapping("s").length)];
-  } else {
-    token = token;
-  }
-  token = token.split("");
-  var novo_token = [];
-  token.forEach(function (e) {
-    if (e === e.toUpperCase()) {
-      var letra = pathMapping(e.toLowerCase());
-      e = letra[Math.floor(Math.random() * letra.length)];
-    }
-    if (e != "&") {
-      novo_token.push(e);
-      token = novo_token.join("");
-    }
-  });
-  return token;
-}
-
-$(".botao-reiniciar").click(function () {
-  $(".token").val("");
-  $(".tbody-sintatico").html("");
-  $(".botao-gerar").css("display", "");
-  $(".botao-reiniciar").css("display", "none");
-  click = 0;
-});
-
-
-function reload() {
-  document.location.reload();
 }
