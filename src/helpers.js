@@ -29,6 +29,6 @@ function toggleButtons() {
     // Caso contrário, oculta os botões de passos e testar
     $(".botao-passos").css("display", "none");
     $(".botao-testar").css("display", "none");
-    $(".botao-reiniciar").css("display", "none");
+    $(".botao-reiniciar").css("display", "");
   }
 }

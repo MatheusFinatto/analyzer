@@ -26,35 +26,30 @@ $(".botao-reiniciar").click(function () {
 //
 
 $(".botao-testar").click(function () {
-  $tabela.append(tableRow());
+  $(".tbody-sintatico").html("");
 
-  // Adiciona informações de pilha inicial e entrada na linha sintática
+  $tabela.append(tableRow());
   $(".tr-sintatico").append(stack("$S"));
   $(".tr-sintatico").append(entry($(".token").val() + "$"));
-
-  // Obtém a célula na tabela de autômato para a entrada atual
   var cedula = $(".tabela-automato")
     .find(".linha-S")
     .find(".coluna-" + $(".token").val().split("")[0])
     .text();
-
-  // Adiciona a ação correspondente na linha sintática
   $(".tr-sintatico").append(action(cedula));
-
   $(".botao-reiniciar").css("display", "");
   $(".botao-passos").css("display", "none");
   $(".botao-testar").css("display", "none");
   $(".botao-gerar").css("display", "none");
 
-  //até OK ou Erro
   while (
     $(".td-acao").last().text().split(" ")[0] != "Erro" ||
     $(".td-acao").last().text().split(" ")[0] != "OK"
   ) {
-    $(".td-acao").last().text().split(" ")[0] === "Lê"
-      ? desempilha()
-      : empilha();
-
+    if ($(".td-acao").last().text().split(" ")[0] === "Lê") {
+      desempilha();
+    } else {
+      empilha();
+    }
     $("html").prop("scrollTop", $("html").prop("scrollHeight"));
   }
 });
