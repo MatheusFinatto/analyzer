@@ -1,3 +1,18 @@
+var click = 0;
+var $tabela = $(".tbody-sintatico");
+
+const stack = (element) => `<td class='td-pilha'>${element}</td>`;
+const entry = (element) => `<td class='td-entrada'>${element}</td>`;
+const action = (element) => `<td class='td-acao'>${element}</td>`;
+const tableRow = () => `<tr class='tr-sintatico'></tr>`;
+
+//
+//
+//
+//
+//
+//
+
 $(".botao-reiniciar").click(function () {
   $(".token").val("");
   $(".tbody-sintatico").html("");
@@ -10,44 +25,36 @@ $(".botao-reiniciar").click(function () {
 //
 //
 
-const stack = (element) => `<td class='td-pilha'>${element}</td>`;
-const entry = (element) => `<td class='td-entrada'>${element}</td>`;
-const action = (element) => `<td class='td-acao'>${element}</td>`;
-const tableRow = () => `<tr class='tr-sintatico'></tr>`;
-
 $(".botao-testar").click(function () {
-  // Adiciona uma linha na tabela de passos sintáticos
   $tabela.append(tableRow());
+
   // Adiciona informações de pilha inicial e entrada na linha sintática
   $(".tr-sintatico").append(stack("$S"));
   $(".tr-sintatico").append(entry($(".token").val() + "$"));
+
   // Obtém a célula na tabela de autômato para a entrada atual
   var cedula = $(".tabela-automato")
     .find(".linha-S")
     .find(".coluna-" + $(".token").val().split("")[0])
     .text();
+
   // Adiciona a ação correspondente na linha sintática
   $(".tr-sintatico").append(action(cedula));
-  // Mostra o botão "Reiniciar"
+
   $(".botao-reiniciar").css("display", "");
-  // Oculta os botões de passos e testar após clicar em "Testar"
   $(".botao-passos").css("display", "none");
   $(".botao-testar").css("display", "none");
   $(".botao-gerar").css("display", "none");
 
-  // Loop para continuar o processo até encontrar "Erro" ou "OK"
+  //até OK ou Erro
   while (
     $(".td-acao").last().text().split(" ")[0] != "Erro" ||
     $(".td-acao").last().text().split(" ")[0] != "OK"
   ) {
-    if ($(".td-acao").last().text().split(" ")[0] === "Lê") {
-      // Se a ação for "Lê", desempilha
-      popFromStack();
-    } else {
-      // Caso contrário, empilha
-      empilha();
-    }
-    // Move a rolagem da página para o final
+    $(".td-acao").last().text().split(" ")[0] === "Lê"
+      ? desempilha()
+      : empilha();
+
     $("html").prop("scrollTop", $("html").prop("scrollHeight"));
   }
 });
@@ -56,25 +63,21 @@ $(".botao-testar").click(function () {
 //
 //
 
-var click = 0;
-var $tabela = $(".tbody-sintatico");
-
 $(".botao-passos").click(function () {
   click += 1;
   if (click <= 1) {
     $tabela.append(tableRow());
     $(".tr-sintatico").append(stack("$S"));
     $(".tr-sintatico").append(entry($(".token").val() + "$"));
-    // Obtém a célula na tabela de autômato para a entrada atual
+
     var cedula = $(".tabela-automato")
       .find(".linha-S")
       .find(".coluna-" + $(".token").val().split("")[0])
       .text();
-    // Adiciona a ação correspondente na linha sintática
+
     $(".tr-sintatico").append(action(cedula));
   } else if ($(".td-acao").last().text().split(" ")[0] === "Lê") {
-    // Caso a última ação seja "Lê", desempilha
-    popFromStack();
+    desempilha();
   } else empilha();
 
   $(".botao-testar").css("display", "none");
@@ -86,7 +89,21 @@ $(".botao-passos").click(function () {
 //
 //
 
-// Gera tokens com base na gramática definida
+$(".botao-gerar").click(function () {
+  generateRandomAcceptableString();
+});
+
+function pathMapping(path) {
+  const mapping = {
+    s: ["aBc", "bABC"],
+    a: ["CA", "bA"],
+    b: ["dC", "&"],
+    c: ["aB", "cCb"],
+  };
+
+  return mapping[path];
+}
+
 function generateTokens(token) {
   if (token === "") {
     token =
@@ -109,7 +126,6 @@ function generateTokens(token) {
   return token;
 }
 
-// Armazena tokens gerados para evitar repetição
 const alreadyGeneratedTokens = {};
 
 // Gera uma sequência aleatória de tokens válidos
@@ -138,15 +154,9 @@ const generateRandomAcceptableString = () => {
         $(".token").val(token);
         alreadyGeneratedTokens[token] = true;
         return token;
-        break;
       }
 
       return generateRandomAcceptableString();
     }
   }
 };
-
-// Evento de clique no botão "Gerar" para iniciar a geração de tokens
-$(".botao-gerar").click(function () {
-  generateRandomAcceptableString();
-});
